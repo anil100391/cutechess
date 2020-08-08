@@ -526,18 +526,35 @@ void BoardScene::addMoveArrow(const QPointF& sourcePos,
 {
 	Q_ASSERT(m_moveArrows != nullptr);
 
-	QLineF l1(sourcePos, targetPos);
-	QLineF l2(l1.normalVector());
+	QLineF l(sourcePos, targetPos);
+	auto arrowLength = l.length() - s_squareSize / 2.5;
+	auto arrowHeadLength = s_squareSize / 3.0;
+	auto arrowTailLength = arrowLength - arrowHeadLength;
 
-	l1.setLength(l1.length() - s_squareSize / 2.5);
-	l2.setLength(s_squareSize / 3.0);
-	l2.translate(l2.dx() / -2.0, l2.dy() / -2.0);
+	auto arrowHeadWidth = s_squareSize / 2.0;
+	auto arrowTailWidth = s_squareSize / 5.0;
+
+	QLineF yaxis(sourcePos, targetPos);
+	QLineF xaxis(yaxis.normalVector());
+	yaxis = yaxis.unitVector();
+	yaxis.translate(-yaxis.p1().x(), -yaxis.p1().y());
+	xaxis = xaxis.unitVector();
+	xaxis.translate(-xaxis.p1().x(), -xaxis.p1().y());
+
+	QPointF p0 = sourcePos - 0.5 * arrowTailWidth * xaxis.p2();
+	QPointF p1 = p0 + arrowTailLength * yaxis.p2();
+	QPointF p2 = p1 - 0.5 * (arrowHeadWidth - arrowTailWidth) * xaxis.p2();
+	QPointF p3 = sourcePos + arrowLength * yaxis.p2();
+
+	QPointF p6 = sourcePos + 0.5 * arrowTailWidth * xaxis.p2();
+	QPointF p5 = p6 + arrowTailLength * yaxis.p2();
+	QPointF p4 = p5 + 0.5 * (arrowHeadWidth - arrowTailWidth) * xaxis.p2();
 
 	QPolygonF polygon;
-	polygon << l2.p1() << l1.p2() << l2.p2();
+	polygon << p0 << p1 << p2 << p3 << p4 << p5 << p6;
 
 	QGraphicsPolygonItem* item = new QGraphicsPolygonItem(polygon);
-	item->setPen(QPen(QBrush(Qt::yellow), 2));
+	item->setPen(QPen(QBrush(Qt::yellow), 0));
 	item->setBrush(Qt::yellow);
 	item->setOpacity(0.6);
 
